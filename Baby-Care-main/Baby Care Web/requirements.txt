@@ -1,0 +1,66 @@
+import gradio as gr
+from answer import openai_create
+
+prompt = """Ask your question!"""
+
+
+def chatgpt_clone(input, history):
+  history = history or []
+  s = list(sum(history, ()))
+  s.append(input)
+  inp = ' '.join(s)
+  output = openai_create(inp)
+  history.append((input, output))
+  return history, history
+
+
+block = gr.Blocks()
+
+with block:
+  gr.Markdown("<h1><center>Baby Care Web 👶🏻</center></h1>")
+  gr.Markdown(
+    "<p><center>Baby Care Web is here to assist you and answer all your queries related to pregnancy, childbirth,
+     the baby's growth, health, and nutrition, the mother's health, parenting tips, and more</center></p>"
+  )
+  chatbot = gr.Chatbot()
+  message = gr.Textbox(placeholder=prompt)
+  state = gr.State()
+  submit = gr.Button("SEND")
+  submit.click(chatgpt_clone,
+               inputs=[message, state],
+               outputs=[chatbot, state])
+
+block.launch(debug=True) #to get public link put share=True as a parameter in launch
+
+
+
+
+
+
+answer.py
+
+#open ai api to get answers like chatgpt
+
+import os
+import openai
+
+#Put your open api key as an environment variable named OPENAI_API_KEY
+OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
+openai.api_key = OPENAI_API_KEY
+
+start_sequence = "\nAI:"
+restart_sequence = "\nHuman: "
+
+
+def openai_create(prompt):
+
+  response = openai.Completion.create(model="text-davinci-003",
+                                      prompt=prompt,
+                                      temperature=0.9,
+                                      max_tokens=125,
+                                      top_p=1,
+                                      frequency_penalty=0,
+                                      presence_penalty=0.6,
+                                      stop=[" Human:", " AI:"])
+
+  return response.choices[0].text
